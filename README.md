@@ -15,7 +15,7 @@
 - **RGB LED**  (PWM 기반 색상 제어 (공기질에 따른 색상 반응))
 - **Push Button** (인터럽트 기반 RGB 센서 on/off 제어)
 
-### RTOS & 시스템 제어
+### 🧩 RTOS & 시스템 제어
 - **FreeRTOS** (CMSIS-RTOS v1 기반 Task/Semaphore/Queue구조)
 - **Task 구성** (SensorTask, GpsTask, CommTask, ButtonTask)
 - **Semaphore** (버튼 이벤트 제어 (디바운싱 처리 포함))
@@ -26,7 +26,7 @@
 - **I2C** (MPU6050 제어 및 충격 감지 인터럽트 설정)
 - **Wi-Fi** (MQTT 데이터 전송)
 
-### 🌐 디버깅
+### 🐞 디버깅
 - **CP2102** (__write 오버라이드 UART 디버깅 (STM32 ↔ PC Serial Monitor))
 - **TeraTerm** (각종 센서 데이터 수신 및 JSON 전송 로그 확인)
 
