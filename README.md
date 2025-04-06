@@ -35,3 +35,4 @@
 ### 🛠 IDE
 - **STM32CubeIDE**
 - **Visual Studio Code**
+- **ArduinoIDE**
