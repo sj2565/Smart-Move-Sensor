@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>센서 실시간 지도</title>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCL7lV6Wk4CR0arE5neHcHW15Kaw4OWJ5Y&libraries=visualization"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        
+        .custom-infowindow {
+            background: white;
+            border: 2px solid black;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+            line-height: 1.5;
+            position: absolute;
+            z-index: 100;
+        }
+        
+        .custom-infowindow::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0 10px;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+        
+        .toggle-btn {
+            display: block;
+            margin: 0 auto 5px auto;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            padding: 5px 15px;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 5px;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: #999;
+            color: #000;
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        let map;
+        let marker = null;
+        let lastLat = null;
+        let lastLng = null;
+        let infoOverlay = null;
+        let infoVisible = true;
+        let infoManuallyHidden = false;
+
+        // 히트맵 관련 추가
+        let heatmap;
+        let heatmapData = [];
+
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
+
+        function CustomInfoWindow(position, contentHTML) {
+            this.position = position;
+            this.contentHTML = contentHTML;
+            this.div = null;
+        }
+
+        CustomInfoWindow.prototype = new google.maps.OverlayView();
+
+        CustomInfoWindow.prototype.onAdd = function() {
+            const div = document.createElement('div');
+            div.className = 'custom-infowindow';
+            div.innerHTML = this.contentHTML;
+            this.div = div;
+
+            const button = div.querySelector(".toggle-btn");
+            if (button) {
+                button.addEventListener("click", () => {
+                    infoVisible = false;
+                    infoManuallyHidden = true;
+                    this.setMap(null);
+                });
+            }
+
+            const panes = this.getPanes();
+            panes.floatPane.appendChild(div);
+        };
+
+        CustomInfoWindow.prototype.draw = function() {
+            const projection = this.getProjection();
+            const pos = projection.fromLatLngToDivPixel(this.position);
+            const div = this.div;
+
+            if (pos && div) {
+                const x = pos.x - div.offsetWidth / 2;
+                const y = pos.y - div.offsetHeight - 20;
+                div.style.left = `${x}px`;
+                div.style.top = `${y}px`;
+                div.style.transform = 'none';
+            }
+        };
+
+        CustomInfoWindow.prototype.onRemove = function() {
+            if (this.div) {
+                this.div.remove();
+                this.div = null;
+            }
+        };
+
+        function showInfoWindow(position, html) {
+            if (!infoVisible || infoManuallyHidden) return;
+
+            if (infoOverlay) infoOverlay.setMap(null);
+            infoOverlay = new CustomInfoWindow(position, html);
+            infoOverlay.setMap(map);
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 18,
+                center: {
+                    lat: 37.205,
+                    lng: 127.003
+                },
+            });
+
+            // 히트맵 초기화
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: heatmapData,
+                radius: 20
+            });
+            heatmap.setMap(map);
+
+            const client = mqtt.connect('wss://test.mosquitto.org:8081');
+
+            client.on('connect', () => {
+                client.subscribe('sensor/data');
+            });
+
+            client.on('message', (topic, payload) => {
+                        try {
+                            const data = JSON.parse(payload.toString());
+                            const {
+                                lat,
+                                lon,
+                                temp,
+                                humid,
+                                air,
+                                gx,
+                                gy,
+                                gz,
+                                shock
+                            } = data;
+
+                            const markerColor = getColorByAir(air);
+                            const latlng = new google.maps.LatLng(lat, lon);
+
+                            const info = `
+                        <button class="toggle-btn">센서 데이터 숨기기</button>
+                        <h3 style="margin-top:0; font-size:16px; text-align:center;">센서 데이터 정보</h3>
+                        <p>🌡️ <strong>온도:</strong> ${temp}°C</p>
+                        <p>💧 <strong>습도:</strong> ${humid}%</p>
+                        <p>🌫️ <strong>공기질:</strong> ${air}</p>
+                        <p>🌀 <strong>충격값:</strong><br>gx=${gx.toFixed(2)}, gy=${gy.toFixed(2)}, gz=${gz.toFixed(2)}</p>
+                        ${shock == 1 ? `<p style="color:red; font-weight:bold;">⚠️ 충격 감지됨!</p>` : ""}
+                    `;
+
+                    if (!marker) {
+                        marker = new google.maps.Marker({
+                            position: latlng,
+                            map,
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: markerColor,
+                                fillOpacity: 0.8,
+                                strokeColor: "white",
+                                strokeWeight: 1,
+                                scale: 15
+                            }
+                        });
+
+                        marker.addListener("click", () => {
+                            map.setZoom(18);
+                            map.panTo(marker.getPosition());
+                            infoVisible = true;
+                            infoManuallyHidden = false;
+                            showInfoWindow(marker.getPosition(), info);
+                        });
+                    } else {
+                        marker.setPosition(latlng);
+                        map.panTo(latlng);
+                        marker.setIcon({
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: markerColor,
+                            fillOpacity: 0.8,
+                            strokeColor: "white",
+                            strokeWeight: 1,
+                            scale: 15
+                        });
+                    }
+
+                    if (shock == 1) {
+                        infoVisible = true;
+                        infoManuallyHidden = false;
+
+                        // 히트맵 위치 추가
+                        heatmapData.push(latlng);
+                        heatmap.setData(heatmapData);
+                    }
+
+                    if (!infoManuallyHidden || shock == 1) {
+                        if (!infoOverlay) {
+                            showInfoWindow(latlng, info);
+                        } else {
+                            infoOverlay.position = latlng;
+                            infoOverlay.setMap(null);
+                            infoOverlay.contentHTML = info;
+                            infoOverlay.setMap(map);
+                        }
+                    }
+
+                    if (shouldUpdateCenter(lat, lon)) {
+                        map.setCenter({ lat, lng: lon });
+                        lastLat = lat;
+                        lastLng = lon;
+                    }
+                } catch (err) {
+                    console.warn('JSON 파싱 오류:', err);
+                }
+            });
+        }
+
+        function getColorByAir(air) {
+            if (air <= 50) return 'green';
+            if (air <= 100) return 'yellow';
+            return 'red';
+        }
+
+        function shouldUpdateCenter(newLat, newLng) {
+            if (lastLat === null || lastLng === null) return true;
+            const threshold = 0.00005;
+            return (
+                Math.abs(newLat - lastLat) > threshold ||
+                Math.abs(newLng - lastLng) > threshold
+            );
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>
