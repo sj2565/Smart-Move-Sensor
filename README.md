@@ -46,37 +46,52 @@
 - **ArduinoIDE**
 
 ## 5. 프로젝트 실행 이미지
-<img width="790" alt="데이터" src="https://github.com/user-attachments/assets/416b198a-5735-48fd-88cd-596cd45eb9ed" /> <br><br><br><br><br><br>
+<img width="790" alt="데이터" src="https://github.com/user-attachments/assets/416b198a-5735-48fd-88cd-596cd45eb9ed" /> <br>실시간 센서 데이터 MQTT 송수신 (STM32 -> ESP32) <br><br><br><br>
 
-<img width="330" alt="구글맵 지도" src="https://github.com/user-attachments/assets/6d567f0f-5ea6-4b56-a1be-ba38a0a08b3b" /> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;
-<img width="330" alt="공기질 나쁨" src="https://github.com/user-attachments/assets/565ed62f-3459-4d73-91d8-9bc762672253" /> <br><br><br><br><br><br>
+<img width="330" alt="구글맵 지도" src="https://github.com/user-attachments/assets/6d567f0f-5ea6-4b56-a1be-ba38a0a08b3b" /> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; 
+<img width="330" alt="공기질 나쁨" src="https://github.com/user-attachments/assets/565ed62f-3459-4d73-91d8-9bc762672253" /> <br> 센서 데이터 구글맵 시각화 및 위치 확인 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; 공기질에 따른 핀 색상 변경 (빨강, 노랑 ,초록)<br><br><br><br><br><br>
 <img width="330" alt="충격 감지 2" src="https://github.com/user-attachments/assets/88ee9eed-28f0-448e-8d3f-c78d477be70b" /> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;
-<img width="330" alt="포트홀 감지 히트맵2" src="https://github.com/user-attachments/assets/457a4daf-6916-4616-8d28-4564768a1bd3" />
-
-
-<p>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;센서 데이터 구글맵 시각화</p>
+<img width="330" alt="포트홀 감지 히트맵2" src="https://github.com/user-attachments/assets/457a4daf-6916-4616-8d28-4564768a1bd3" /> <br> 포트홀 충격으로 인한 알림 자동 표시 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; 포트홀 감지 빈도에 따른 히트맵 시각화 <br><br><br>
 
 ## 6. 설치 및 실행
-**C프로그램 컴파일**
+**펌웨어 플래싱 (STM32)**
 ```bash
-# 라즈베리파이에서 컴파일 진행
-gcc -o SubwaySensor SubwaySensor.c -lwiringPi
+# STM32CubeIDE에서 전체 프로젝트 빌드 후, 보드에 업로드
+# 필요시 ST-Link 사용
+
+# 주요 센서 및 모듈
+- MPU6050 (I2C)
+- DHT22 (GPIO)
+- MQ135 (ADC)
+- GPS (UART)
 ```
-**Python 라이브러리 설치**
+**ESP32 펌웨어 업로드**
 ```bash
-python3 -m pip install numpy pandas scipy scikit-learn
+# PlatformIO / Arduino IDE를 사용하여 업로드
+# 설정: buad rate : 115200 / ESP32-WROOM-32
 
-# pip 설치 안될 시 가상환경을 통해서 설치
-python3 -m venv 설정할 이름
-
-# 가상환경 활성화
-source 설정할 이름/bin/activate
+# 주요 기능
+- STM32에서 UART로 수신한 JSON 데이터 MQTT로 송신
+- Wi-Fi 연결 및 MQTT 브로커 연동
 ```
 
-**Node 서버 가동 및 실행**
+**MQTT 브로커 설치 (선택)**
 ```bash
-node SubwayServer
+# 로컬 MQTT 브로커 실행 (Mosquitto 등)
+sudo apt install mosquitto
+mosquitto
+
+# 또는 public MQTT broker 사용 가능
 ```
+
+**전체 실행 순서 요약**
+```text
+1. STM32 보드 전원 ON (센서 → ESP32로 UART 송신)
+2. ESP32 Wi-Fi 연결 및 MQTT 메시지 발행
+3. 웹 클라이언트(mqtt.html)에서 WebSocket으로 브로커에 연결
+4. 브라우저에서 실시간 상태 확인
+```
+
 ## 7. 향후 개선할 점
 + C -> Node(서버)로 보낼 때 단순 버퍼 형식이 아니라 UART나 TCP/UDP 같은 통신 활용.
 + AI 모델 평가를 위해 정확도 및 손실함수를 적용.
