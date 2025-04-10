@@ -52,7 +52,6 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 extern I2C_HandleTypeDef hi2c1;
-osThreadId sensorTaskHandle;
 QueueHandle_t sensorDataQueue;
 /* USER CODE END Variables */
 osThreadId SensorTaskHandle;
