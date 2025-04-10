@@ -5,12 +5,13 @@
  *      Author: seojoon
  */
 
-#include "sensor_task.h"
+#include "sensor_task.h" // mpu6050.h 구조체 -> sensor_task.h
 #include "button_task.h"
 #include "gps_task.h"
 #include "sensor_data.h"
 #include "cmsis_os.h"
 #include <stdio.h>
+#include <string.h>
 #include "tim.h"
 
 extern I2C_HandleTypeDef hi2c1;
@@ -21,7 +22,7 @@ extern QueueHandle_t sensorDataQueue;  // sensorTask -> commTask 큐 선언
 
 static uint8_t first_boot = 1;
 
-MPU6050_t mpu_data;
+MPU6050_t mpu_data; // mpu6050.h
 uint32_t lastPrintTick; // 출력 타이밍 기준점
 
 void StartSensorTask(void const * argument)
@@ -47,6 +48,15 @@ void StartSensorTask(void const * argument)
             	first_boot = 0;
             } else {
             	MPU6050_ProcessEvent(&hi2c1, &mpu_data);
+
+            	// shock 이벤트 큐 전송 추가
+            	SensorData_t shock_event;
+            	memset(&shock_event, 0, sizeof(SensorData_t));
+            	shock_event.timestamp = xTaskGetTickCount();
+            	shock_event.type = SENSOR_TYPE_MPU6050;
+            	shock_event.shock = 1; // 인터럽트 감지
+
+            	xQueueSend(sensorDataQueue, &shock_event, 0);
             }
         }
 
@@ -54,10 +64,11 @@ void StartSensorTask(void const * argument)
         if ((HAL_GetTick() - lastPrintTick) >= 2000) {
         	lastPrintTick = HAL_GetTick();
 
-        	// 온습도 센서 관련
         	SensorData_t data;
+        	memset(&data, 0, sizeof(SensorData_t));  // 초기화
         	data.timestamp = xTaskGetTickCount();
 
+        	// 온습도 센서 관련
         	if (DHT22_Read(&temperature, &humidity) == 0) {
         		data.type = SENSOR_TYPE_DHT22;
         	    data.data.dht.temperature = temperature;
