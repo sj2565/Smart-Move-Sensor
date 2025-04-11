@@ -53,9 +53,9 @@
 <img width="790" alt="데이터" src="https://github.com/user-attachments/assets/416b198a-5735-48fd-88cd-596cd45eb9ed" /> <br>실시간 센서 데이터 MQTT 송수신 (STM32 -> ESP32) <br><br><br><br>
 
 <img width="330" alt="구글맵 지도" src="https://github.com/user-attachments/assets/6d567f0f-5ea6-4b56-a1be-ba38a0a08b3b" /> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; 
-<img width="330" alt="공기질 나쁨" src="https://github.com/user-attachments/assets/565ed62f-3459-4d73-91d8-9bc762672253" /> <br> 센서 데이터 구글맵 시각화 및 위치 확인 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; 공기질에 따른 핀 색상 변경 (빨강, 노랑 ,초록)<br><br><br><br><br><br>
+<img width="330" alt="공기질 나쁨" src="https://github.com/user-attachments/assets/565ed62f-3459-4d73-91d8-9bc762672253" /> <br> 센서 데이터 구글맵 시각화 및 위치 확인 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; 공기질에 따른 핀 색상 변경 (빨강, 노랑 ,초록)<br><br><br><br><br><br>
 <img width="330" alt="충격 감지 2" src="https://github.com/user-attachments/assets/88ee9eed-28f0-448e-8d3f-c78d477be70b" /> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;
-<img width="330" alt="포트홀 감지 히트맵2" src="https://github.com/user-attachments/assets/457a4daf-6916-4616-8d28-4564768a1bd3" /> <br> 포트홀 충격으로 인한 알림 자동 표시 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; 포트홀 감지 빈도에 따른 히트맵 시각화 <br><br><br>
+<img width="330" alt="포트홀 감지 히트맵2" src="https://github.com/user-attachments/assets/457a4daf-6916-4616-8d28-4564768a1bd3" /> <br> 포트홀 충격으로 인한 알림 자동 표시 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; 포트홀 감지 빈도에 따른 히트맵 시각화 <br><br><br>
 
 ## 6. 설치 및 실행
 **펌웨어 플래싱 (STM32)**
