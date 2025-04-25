@@ -17,7 +17,7 @@
 ## 4. 활용된 기술
 
 ### ⚙ 임베디드 시스템
-- **STM32 Black Pill (STM32F411CEU6)** (센서 수집 및 실시간 제어 (FreeRTOS 기반))
+- **STM32 Black Pill (STM32F411CEU6)** (센서 수집 및 실시간 제어 (FreeRTOS 기반)
 - **MPU6050** (인터럽트 및 I2C 기반 6축 자이로/가속도 센서 (충격 감지 및 이동 평균 필터 적용))
 - **DHT22** (GPIO 기반 온습도 센서 (Bit-banging 방식 + DWT 딜레이 사용))
 - **MQ135** (ADC 기반 공기질 센서 (0~1023 → PPM 계산))
